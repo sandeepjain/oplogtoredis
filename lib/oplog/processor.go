@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/tulip/oplogtoredis/lib/config"
 	"github.com/tulip/oplogtoredis/lib/log"
 	"github.com/tulip/oplogtoredis/lib/redispub"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -40,6 +41,33 @@ func processOplogEntry(op *oplogEntry) (*redispub.Publication, error) {
 		// The Config database holds internal MongoDB structures, such as metadata
 		// about transactions and locks
 		return nil, nil
+	}
+
+	mongoDatabases := config.MongoDatabases()
+	collectionsToIgnore := config.CollectionsToIgnore()
+
+	if len(mongoDatabases) > 0 {
+		found := false
+		for _, db := range mongoDatabases {
+			if op.Database == db {
+				found = true
+				break
+			}
+		}
+		if !found {
+			log.Log.Debugw("Ignoring event because of non-whitelisted DB", "entryDatabase", op.Database)
+			// The database is not in the allowed list
+			return nil, nil
+		}
+	}
+
+	if len(collectionsToIgnore) > 0 {
+		for _, db := range collectionsToIgnore {
+			if op.Collection == db {
+				log.Log.Debugw("Ignoring entry because of ignored collection list", "entryCollection", op.Collection)
+				return nil, nil
+			}
+		}
 	}
 
 	var idForChannel string

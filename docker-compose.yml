@@ -22,6 +22,8 @@ services:
       - OTR_MONGO_URL=mongodb://mongo/dev
       - OTR_REDIS_URL=redis://redis,redis-sentinel://redis-sentinel:26379?sentinelMasterId=mymaster
       - OTR_LOG_DEBUG=true
+      - OTR_MONGO_DATABASES=not_dev,not_another_dev
+      - OTR_COLLECTIONS_TO_IGNORE=ignored_collection,another_ignored_collection
     ports:
       - 9000:9000
     volumes:
@@ -42,6 +44,6 @@ services:
       - REDIS_REPLICATION_MODE=master
 
   redis-sentinel:
-    image: redis-sentinel:latest
+    image: bitnami/redis-sentinel:latest
     environment:
       - REDIS_SENTINEL_MASTER=redis-sentinel-master

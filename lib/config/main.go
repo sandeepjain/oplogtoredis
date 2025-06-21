@@ -11,6 +11,8 @@ import (
 )
 
 type oplogtoredisConfiguration struct {
+	MongoDatabases                string        `required:"false" split_words:"true"`
+	CollectionsToIgnore           string        `required:"false" split_words:"true"`
 	RedisURL                      string        `required:"true" split_words:"true"`
 	MongoURL                      string        `required:"true" split_words:"true"`
 	HTTPServerAddr                string        `default:"0.0.0.0:9000" envconfig:"HTTP_SERVER_ADDR"`
@@ -32,6 +34,20 @@ type oplogtoredisConfiguration struct {
 }
 
 var globalConfig *oplogtoredisConfiguration
+
+// MongoDatabases is the configuration for specifying oplog of which database to process using 'OTR_Mongo_Databases' environment variable.
+// Multiple Databases can be configured by separating them with comma
+// If left empty oplog of all databases will be processed
+func MongoDatabases() []string {
+	return strings.Split(globalConfig.MongoDatabases, ",")
+}
+
+// CollectionsToIgnore is the configuration for specifying oplog of which collections to ignore using 'OTR_Collections_To_Ignore' environment variable.
+// Multiple collections can be configured by separating them with comma
+// If left empty oplog of all collections will be processed
+func CollectionsToIgnore() []string {
+	return strings.Split(globalConfig.CollectionsToIgnore, ",")
+}
 
 // RedisURL is the configuration for connecting to a Redis instance using the 'OTR_REDIS_URL' environment variable.
 // For TLS, use 'rediss://'; for non-TLS, use 'redis://'.
