@@ -98,6 +98,14 @@ func processOplogEntry(op *oplogEntry) (*redispub.Publication, error) {
 		return nil, errors.Wrap(errCF, "error getting changed fields")
 	}
 
+	if op.Collection == "duties" {
+		// Check if changedFields only contains aLbl or rem
+		if len(changedFields) == 1 && (changedFields[0] == "aLbl" || changedFields[0] == "rem") {
+			log.Log.Debugw("Ignoring duties entry with only aLbl or rem field update", "changedFields", changedFields)
+			return nil, nil
+		}
+	}
+
 	// Construct the JSON we're going to send to Redis
 	//
 	// TODO PERF: consider a specialized JSON encoder
