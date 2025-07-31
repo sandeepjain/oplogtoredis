@@ -100,7 +100,7 @@ func processOplogEntry(op *oplogEntry) (*redispub.Publication, error) {
 
 	if op.Collection == "duties" {
 		// Check if changedFields only contains aLbl or rem
-		if len(changedFields) == 1 && (changedFields[0] == "aLbl" || changedFields[0] == "rem") {
+		if len(changedFields) == 1 && changedFields[0] == "rem" {
 			log.Log.Debugw("Ignoring duties entry with only aLbl or rem field update", "changedFields", changedFields)
 			return nil, nil
 		}
