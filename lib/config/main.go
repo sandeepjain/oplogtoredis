@@ -13,6 +13,7 @@ import (
 type oplogtoredisConfiguration struct {
 	MongoDatabases                string        `required:"false" split_words:"true"`
 	CollectionsToIgnore           string        `required:"false" split_words:"true"`
+	RemFieldCollectionsToIgnore   string        `required:"false" split_words:"true"`
 	RedisURL                      string        `required:"true" split_words:"true"`
 	MongoURL                      string        `required:"true" split_words:"true"`
 	HTTPServerAddr                string        `default:"0.0.0.0:9000" envconfig:"HTTP_SERVER_ADDR"`
@@ -35,18 +36,26 @@ type oplogtoredisConfiguration struct {
 
 var globalConfig *oplogtoredisConfiguration
 
-// MongoDatabases is the configuration for specifying oplog of which database to process using 'OTR_Mongo_Databases' environment variable.
+// MongoDatabases is the configuration for specifying oplog of which database to process using 'OTR_MONGO_DATABASES' environment variable.
 // Multiple Databases can be configured by separating them with comma
 // If left empty oplog of all databases will be processed
 func MongoDatabases() []string {
 	return strings.Split(globalConfig.MongoDatabases, ",")
 }
 
-// CollectionsToIgnore is the configuration for specifying oplog of which collections to ignore using 'OTR_Collections_To_Ignore' environment variable.
+// CollectionsToIgnore is the configuration for specifying oplog of which collections to ignore using 'OTR_COLLECTIONS_TO_IGNORE' environment variable.
 // Multiple collections can be configured by separating them with comma
 // If left empty oplog of all collections will be processed
 func CollectionsToIgnore() []string {
 	return strings.Split(globalConfig.CollectionsToIgnore, ",")
+}
+
+// RemFieldCollectionsToIgnore is the configuration for specifying oplog of which collections to ignore when only rem field is part of update
+// 'OTR_REM_FIELD_COLLECTIONS_TO_IGNORE' environment variable.
+// Multiple collections can be configured by separating them with comma
+// If left empty oplog of all collections will be processed
+func RemFieldCollectionsToIgnore() []string {
+	return strings.Split(globalConfig.RemFieldCollectionsToIgnore, ",")
 }
 
 // RedisURL is the configuration for connecting to a Redis instance using the 'OTR_REDIS_URL' environment variable.

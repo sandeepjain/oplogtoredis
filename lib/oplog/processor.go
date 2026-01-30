@@ -45,6 +45,7 @@ func processOplogEntry(op *oplogEntry) (*redispub.Publication, error) {
 
 	mongoDatabases := config.MongoDatabases()
 	collectionsToIgnore := config.CollectionsToIgnore()
+	remFieldCollectionsToIgnore := config.RemFieldCollectionsToIgnore()
 
 	if len(mongoDatabases) > 0 {
 		found := false
@@ -96,6 +97,15 @@ func processOplogEntry(op *oplogEntry) (*redispub.Publication, error) {
 	changedFields, errCF := op.ChangedFields()
 	if errCF != nil {
 		return nil, errors.Wrap(errCF, "error getting changed fields")
+	}
+
+	if len(remFieldCollectionsToIgnore) > 0 && len(changedFields) == 1 && changedFields[0] == "rem" {
+		for _, db := range remFieldCollectionsToIgnore {
+			if op.Collection == db {
+				log.Log.Debugw("Ignoring collection entry with only rem field update", "entryCollection", op.Collection)
+				return nil, nil
+			}
+		}
 	}
 
 	// Construct the JSON we're going to send to Redis
