@@ -99,6 +99,11 @@ func processOplogEntry(op *oplogEntry) (*redispub.Publication, error) {
 		return nil, errors.Wrap(errCF, "error getting changed fields")
 	}
 
+	if op.Collection == "duties" && isDutiesIgnoredFieldSet(changedFields) {
+		log.Log.Debugw("Ignoring duties collection entry with only a/dO field update")
+		return nil, nil
+	}
+
 	if len(remFieldCollectionsToIgnore) > 0 && len(changedFields) == 1 && changedFields[0] == "rem" {
 		for _, db := range remFieldCollectionsToIgnore {
 			if op.Collection == db {
@@ -151,6 +156,25 @@ func processOplogEntry(op *oplogEntry) (*redispub.Publication, error) {
 		TxIdx:          op.TxIdx,
 		ParallelismKey: int(hashInt),
 	}, nil
+}
+
+// returns true if changedFields contains only "a", only "dO", or both.
+func isDutiesIgnoredFieldSet(changedFields []string) bool {
+	if len(changedFields) == 0 || len(changedFields) > 2 {
+		return false
+	}
+	hasA, hasDO := false, false
+	for _, f := range changedFields {
+		switch f {
+		case "a":
+			hasA = true
+		case "dO":
+			hasDO = true
+		default:
+			return false
+		}
+	}
+	return hasA || hasDO
 }
 
 func eventNameForOperation(op *oplogEntry) string {
